@@ -1,0 +1,33 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.Separator?>
+<VBox fx:controller="examples.JavaFX.Controller"
+      prefWidth="600"
+      prefHeight="400"
+      spacing="10"
+      xmlns:fx="http://javafx.com/fxml" alignment="CENTER">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+    <Label wrapText="true"
+           text="Please enter your full name in the input field below. It will be used as a user id to verify your typing on TypingDNA."/>
+    <HBox spacing="20" alignment="CENTER">
+        <TextField fx:id="textField" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <HBox alignment="CENTER" spacing="20">
+        <Button text="Get Diagram" onAction="#onDiagramClick"/>
+        <Button text="Get Typing Pattern" onAction="#onTypingPatternClick"/>
+        <Button text="Clear" onAction="#onClearClick"/>
+    </HBox>
+
+    <Separator />
+
+    <Label text="Pattern:"/>
+    <TextArea fx:id="patternView" wrapText="true" prefHeight="550"/>
+</VBox>
