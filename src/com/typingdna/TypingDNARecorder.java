@@ -21,15 +21,14 @@ public class TypingDNARecorder {
     public static int replaceMissingKeysPerc = 7;
     public static boolean recording = true;
     public static boolean diagramRecording = true;
-    public static final double version = 2.11; // started from similar JavaScript 2.11 version (without MOUSE tracking
-    // and without special keys)
-
+    public static final double version = 2.14; // (without MOUSE tracking and without special keys)
+    
     private static final int flags = 1; // JAVA version has flag=1
     private static final int maxSeekTime = 1500;
     private static final int maxPressTime = 300;
     private static final int[] keyCodes = new int[] { 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
-            81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 32, 222, 44, 46, 59, 61, 45, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
-            57 };
+    81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 32, 222, 44, 46, 59, 61, 45, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+    57 };
     private static int maxKeyCode = 250;
     private static int defaultHistoryLength = 160;
     private static int[] keyCodesObj = new int[maxKeyCode];
@@ -48,28 +47,39 @@ public class TypingDNARecorder {
     private static int savedMissingAvgValuesHistoryLength = -1;
     private static int savedMissingAvgValuesSeekTime;
     private static int savedMissingAvgValuesPressTime;
-
-
+    
+    
     /**
      * EXAMPLE:
-     * String typingPattern = TypingDNA.getTypingPattern(type, length, text, textId, extended);
+     * String typingPattern = TypingDNA.getTypingPattern(type, length, text, textId, caseSensitive);
      *
      * PARAMS:
-     * int type = 0; // 1 for diagram pattern (email, password, short identical texts), 0 for any-text typing pattern (random text)
+     * int type = 0; // 1,2 for diagram pattern (short identical texts - 2 for extended diagram), 0 for any-text typing pattern (random text)
      * int length = 0; // (Optional) the length of the text in the history for which you want the typing pattern, 0 = ignore
      * String text = ""; // (Only for type 1) a typed string that you want the typing pattern for
      * int textId = 0; // (Optional, only for type 1) a personalized id for the typed text, 0 = ignore
-     * boolean extended = false; // (Only for type 1) specifies if full information about what was typed is produced,
-     * including the actual key pressed, if false, only the order of pressed keys is kept (no actual content)
+     * boolean caseSensitive = false; // (Optional, only for type 1) Used only if you pass a text for type 1
      */
-    public static String getTypingPattern(int type, int length, String text, int textId, boolean extended) {
+    public static String getTypingPattern(int type, int length, String text, int textId, boolean caseSensitive) {
         if (type == 1) {
-            return TypingDNARecorder.getDiagram(extended, text, textId, length);
+            return TypingDNARecorder.getDiagram(false, text, textId, length, caseSensitive);
+        } else if (type == 2) {
+            return TypingDNARecorder.getDiagram(true, text, textId, length, caseSensitive);
         } else {
             return TypingDNARecorder.get(length);
         }
     }
-
+    
+    public static String getTypingPattern(int type, int length, String text, int textId) {
+        if (type == 1) {
+            return TypingDNARecorder.getDiagram(false, text, textId, length, false);
+        } else if (type == 2) {
+            return TypingDNARecorder.getDiagram(true, text, textId, length, false);
+        } else {
+            return TypingDNARecorder.get(length);
+        }
+    }
+    
     /**
      * Resets the history stack of recorded typing events.
      */
@@ -77,7 +87,7 @@ public class TypingDNARecorder {
         historyStack = new ArrayList<int[]>();
         stackDiagram = new ArrayList<int[]>();
     }
-
+    
     /**
      * Automatically called at initialization. It starts the recording of typing events.
      * You only have to call .start() to resume recording after a .stop()
@@ -86,7 +96,7 @@ public class TypingDNARecorder {
         recording = true;
         diagramRecording = true;
     }
-
+    
     /**
      * Ends the recording of further typing events.
      */
@@ -94,11 +104,11 @@ public class TypingDNARecorder {
         recording = false;
         diagramRecording = false;
     }
-
+    
     public TypingDNARecorder() {
         initialize();
     }
-
+    
     public static void initialize() {
         for (int i = 0; i < keyCodes.length; i++) {
             keyCodesObj[(int) keyCodes[i]] = 1;
@@ -107,7 +117,7 @@ public class TypingDNARecorder {
         reset();
         start();
     }
-
+    
     public static void keyPressed(int keyCode, char keyChar, boolean modifiers) {
         long t0 = pt1;
         pt1 = getTime();
@@ -131,13 +141,13 @@ public class TypingDNARecorder {
             drkc[keyCode] = keyChar;
         }
     }
-
+    
     public static void keyTyped(char keyChar) {
         if (diagramRecording == true && (Character.isDefined(keyChar)) && lastPressedKey < maxKeyCode ) {
             drkc[lastPressedKey] = (int)keyChar;
         }
     }
-
+    
     public static void keyReleased(int keyCode, boolean modifiers) {
         if ((!recording && !diagramRecording) ||  keyCode >= maxKeyCode) {
             return;
@@ -166,25 +176,25 @@ public class TypingDNARecorder {
             dwfk[keyCode] = 0;
         }
     }
-
+    
     public static String hash32(String str) {
         str = str.toLowerCase();
         return fnv1a_32(str.getBytes()).toString();
     }
-
+    
     // Private functions
-
+    
     private static void historyAdd(int[] arr) {
         historyStack.add(arr);
         if (historyStack.size() > maxHistoryLength) {
             historyStack.remove(0);
         }
     }
-
+    
     private static void historyAddDiagram(int[] arr) {
         stackDiagram.add(arr);
     }
-
+    
     private static Integer[] getSeek(int length) {
         int historyTotalLength = historyStack.size();
         if (length > historyTotalLength) {
@@ -200,7 +210,7 @@ public class TypingDNARecorder {
         Integer[] seekList = seekArr.toArray(new Integer[seekArr.size()]);
         return seekList;
     }
-
+    
     private static Integer[] getPress(int length) {
         int historyTotalLength = historyStack.size();
         if (length > historyTotalLength) {
@@ -216,7 +226,7 @@ public class TypingDNARecorder {
         Integer[] pressList = pressArr.toArray(new Integer[pressArr.size()]);
         return pressList;
     }
-
+    
     private static BigInteger fnv1a_32(byte[] data) {
         BigInteger hash = new BigInteger("721b5ad4", 16);
         ;
@@ -226,8 +236,8 @@ public class TypingDNARecorder {
         }
         return hash;
     }
-
-    private static String getDiagram(boolean extended, String str, int textId, int tpLength) {
+    
+    private static String getDiagram(boolean extended, String str, int textId, int tpLength, boolean caseSensitive) {
         String returnArr = "";
         int diagramType = (extended == true) ? 1 : 0;
         int diagramHistoryLength = stackDiagram.size();
@@ -245,13 +255,23 @@ public class TypingDNARecorder {
             returnTextId = "" + textId;
         }
         String returnArr0 = (mobile ? 1 : 0) + "," + version + "," + flags + "," + diagramType + "," + strLength + ","
-                + returnTextId + ",0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1";
+        + returnTextId + ",0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1,0,-1,-1";
         returnArr += returnArr0;
         if (str.length() > 0) {
+            String strLower = str.toLowerCase();
+            String strUpper = str.toUpperCase();
             ArrayList<Integer> lastFoundPos = new ArrayList<Integer>();
             int lastPos = 0;
+            int strUpperCharCode;
+            int currentSensitiveCharCode;
             for (int i = 0; i < str.length(); i++) {
                 int currentCharCode = (int) str.charAt(i);
+                if (!caseSensitive) {
+                    strUpperCharCode = (int) strUpper.charAt(i);
+                    currentSensitiveCharCode = (strUpperCharCode != currentCharCode) ? strUpperCharCode : (int) strLower.charAt(i);
+                } else {
+                    currentSensitiveCharCode = currentCharCode;
+                }
                 int startPos = lastPos;
                 int finishPos = diagramHistoryLength;
                 boolean found = false;
@@ -259,7 +279,7 @@ public class TypingDNARecorder {
                     for (int j = startPos; j < finishPos; j++) {
                         int[] arr = stackDiagram.get(j);
                         int charCode = arr[3];
-                        if (charCode == currentCharCode) {
+                        if (charCode == currentCharCode || (!caseSensitive && charCode == currentSensitiveCharCode)) {
                             found = true;
                             if (j == lastPos) {
                                 lastPos++;
@@ -293,7 +313,7 @@ public class TypingDNARecorder {
                                 missingCount++;
                                 int seekTime, pressTime;
                                 if (savedMissingAvgValuesHistoryLength == -1
-                                        || savedMissingAvgValuesHistoryLength != diagramHistoryLength) {
+                                    || savedMissingAvgValuesHistoryLength != diagramHistoryLength) {
                                     Integer[] histSktF = fo(getSeek(200));
                                     Integer[] histPrtF = fo(getPress(200));
                                     seekTime = (int) Math.round(avg(histSktF));
@@ -308,7 +328,7 @@ public class TypingDNARecorder {
                                 int missing = 1;
                                 if (extended) {
                                     returnArr += "|" + currentCharCode + "," + seekTime + "," + pressTime + ","
-                                            + currentCharCode + "," + missing;
+                                    + currentCharCode + "," + missing;
                                 } else {
                                     returnArr += "|" + seekTime + "," + pressTime + "," + missing;
                                 }
@@ -319,7 +339,7 @@ public class TypingDNARecorder {
                 }
                 if (replaceMissingKeysPerc < missingCount * 100 / strLength) {
                     returnArr = returnArr0;
-                    break;
+                    return null;
                 }
             }
         } else {
@@ -345,7 +365,7 @@ public class TypingDNARecorder {
         }
         return returnArr;
     }
-
+    
     private static String get(int length) {
         int historyTotalLength = historyStack.size();
         if (length == 0) {
@@ -529,24 +549,24 @@ public class TypingDNARecorder {
         typingPattern = typingPattern.substring(1, typingPattern.length() - 1);
         return typingPattern;
     }
-
+    
     private static long getTime() {
         return System.currentTimeMillis();
     }
-
+    
     private static double rd(double value, int places) {
         if (places < 0)
             throw new IllegalArgumentException();
-
+        
         BigDecimal bd = new BigDecimal(value);
         bd = bd.setScale(places, RoundingMode.HALF_UP);
         return bd.doubleValue();
     }
-
+    
     private static double rd(double value) {
         return rd(value, 4);
     }
-
+    
     private static Integer[] fo(Integer[] arr) {
         int len = (int) arr.length;
         if (len > 1) {
@@ -572,7 +592,7 @@ public class TypingDNARecorder {
             return arr;
         }
     }
-
+    
     private static Double avg(Integer[] arr) {
         int len = (int) arr.length;
         if (len > 0) {
@@ -585,7 +605,7 @@ public class TypingDNARecorder {
             return 0.0;
         }
     }
-
+    
     private static double sd(Integer[] arr) {
         int len = (int) arr.length;
         if (len < 2) {
@@ -601,3 +621,4 @@ public class TypingDNARecorder {
         }
     }
 }
+

@@ -84,12 +84,12 @@ public class AWT {
         JButton btnGetPattern = new JButton("Copy Pattern");
         btnGetPattern.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                int type = 0; // 1 for diagram pattern (email, password, short identical texts), 0 for any-text typing pattern (random text)
+                int type = 0; // 1,2 for diagram pattern (short identical texts - 2 for extended diagram), 0 for any-text typing pattern (random text)
                 int length = 0; // (Optional) the length of the text in the history for which you want the typing pattern, 0 = ignore, (works only if text = "")
                 String text = ""; // (Only for type 1) a typed string that you want the typing pattern for
                 int textId = 0; // (Optional, only for type 1) a personalized id for the typed text, 0 = ignore
-                boolean extended = false; // (Only for type 1) specifies if full information about what was typed is produced, including the actual key pressed, if false, only the order of pressed keys is kept (no actual content)
-                String typingPattern = TypingDNARecorder.getTypingPattern(type, length, text, textId, extended);
+                boolean caseSensitive = false; // (Optional, only for type 1) Used only if you pass a text for type 1
+                String typingPattern = TypingDNARecorder.getTypingPattern(type, length, text, textId, caseSensitive);
                 doSomethingWithTP(typingPattern);
                 textMain.requestFocus();
             }
@@ -111,12 +111,12 @@ public class AWT {
         JButton btnGetDiagram = new JButton("Copy Diagram");
         btnGetDiagram.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                int type = 1; // 1 for diagram pattern (email, password, short identical texts), 0 for any-text typing pattern (random text)
+                int type = 2; // 1,2 for diagram pattern (short identical texts - 2 for extended diagram), 0 for any-text typing pattern (random text)
                 int length = 0; // (Optional) the length of the text in the history for which you want the typing pattern, 0 = ignore, (works only if text = "")
                 String text = textMain.getText(); // (Only for type 1) a typed string that you want the typing pattern for
                 int textId = 0; // (Optional, only for type 1) a personalized id for the typed text, 0 = ignore
-                boolean extended = true; // (Only for type 1) specifies if full information about what was typed is produced, including the actual key pressed, if false, only the order of pressed keys is kept (no actual content)
-                String typingPattern = TypingDNARecorder.getTypingPattern(type, length, text, textId, extended);
+                boolean caseSensitive = false; // (Optional, only for type 1) Used only if you pass a text for type 1
+                String typingPattern = TypingDNARecorder.getTypingPattern(type, length, text, textId, caseSensitive);
                 doSomethingWithTP(typingPattern);
                 textMain.requestFocus();
             }
