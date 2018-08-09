@@ -43,15 +43,15 @@ This is the main function that outputs the user's typing pattern as a `String`
 
 **Returns**: A typing pattern in `String` form  
 
-**Input params**: the following params are required: type, length, text, textId, extended (in this particular order). Detail table below.
+**Input params**: the following params are required: type, length, text, textId, caseSensitive (in this particular order). Detail table below.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| **type** | `int` | `0 for anytext pattern` (when you compare random typed texts of usually 120-180 chars long) <br> `1 for diagram pattern` (recommended in most cases, for emails, passwords, phone numbers, credit cards, short texts) |
+| **type** | `int` | `0 for anytext pattern` (when you compare random typed texts of usually 120-180 chars long) <br> `1 for diagram pattern` (recommended in most cases, for emails, passwords, phone numbers, credit cards, short texts <br> `2 for extended diagram pattern` (best accuracy, recommended in cases where text is not a secret) |
 | **length** | `int` | (Optional) the length of the text in the history for which you want the typing pattern, 0 = ignore, (works only if text = "") |
 | **text** | `String` | (Only for type 1) a typed string that you want the typing pattern for |
 | **textId** | `int` | (Optional, only for type 1) a personalized id for the typed text, 0 = ignore |
-| **extended** | `boolean` | (Only for type 1) specifies if full information about what was typed is produced, including the actual key pressed, if false, only the order of pressed keys is kept (no actual content) |
+| **caseSensitive** | `boolean` | (Optional, only for type 1) Used only if you pass a text for type 1 |
 
 
 **Example**  
@@ -60,9 +60,9 @@ int type = 1;
 int length = 0;
 String text = textMain.getText();
 int textId = 0;
-boolean extended = true;
+boolean caseSensitive = false;
 
-String typingPattern = TypingDNARecorder.getTypingPattern(type, length, text, textId, extended);
+String typingPattern = TypingDNARecorder.getTypingPattern(type, length, text, textId, caseSensitive);
 ```
 
 ### TypingDNARecorder.reset()
